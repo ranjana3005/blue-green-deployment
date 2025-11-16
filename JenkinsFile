@@ -10,24 +10,24 @@ pipeline {
 
         stage('Deploy Blue') {
             steps {
-                sh 'docker stop blue || true'
-                sh 'docker rm blue || true'
-                sh 'docker run -d --name blue -p 8081:3000 yourdockerhubusername/node-blue:v1'
+                bat 'docker stop blue || true'
+                bat 'docker rm blue || true'
+                bat 'docker run -d --name blue -p 8081:3000 yourdockerhubusername/node-blue:v1'
             }
         }
 
         stage('Deploy Green') {
             steps {
-                sh 'docker stop green || true'
-                sh 'docker rm green || true'
-                sh 'docker run -d --name green -p 8082:3000 yourdockerhubusername/node-green:v2'
+                bat 'docker stop green || true'
+                bat 'docker rm green || true'
+                bat 'docker run -d --name green -p 8082:3000 yourdockerhubusername/node-green:v2'
             }
         }
 
         stage('Health Check') {
             steps {
                 script {
-                    def green_status = sh(script: "curl -s http://localhost:8082", returnStdout: true)
+                    def green_status = bat(script: "curl -s http://localhost:8082", returnStdout: true)
                     if (!green_status.contains('Green')) {
                         error("Green deployment failed")
                     }
@@ -37,9 +37,10 @@ pipeline {
 
         stage('Switch Traffic') {
             steps {
-                sh 'docker stop blue'
+                bat 'docker stop blue'
                 echo "Traffic moved to GREEN deployment"
             }
         }
     }
 }
+
