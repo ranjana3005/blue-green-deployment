@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Pull Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/ranjana3005/blue-green-deployment.git'
+            }
+        }
+
+        stage('Deploy Blue') {
+            steps {
+                bat '''
+                docker stop blue 2>NUL || echo Blue not running
+                docker rm blue 2>NUL || echo Blue not found
+                docker run -d --name blue -p 8081:3000 ranjana4047/node-blue:v1
+                '''
+            }
+        }
+
+        stage('Deploy Green') {
+            steps {
+                bat '''
+                docker stop green 2>NUL || echo Green not running
+                docker rm green 2>NUL || echo Green not found
+                docker run -d --name green -p 8082:3000 ranjana4047/node-green:v2
+                '''
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                script {
+                    def green_status = bat(
+                        script: 'powershell -Command "(Invoke-WebRequest http://localhost:8082).Content"',
+                        returnStdout: true
+                    ).trim()
+
+                    if (!green_status.contains('Green')) {
+                        error("❌ Green deployment failed")
+                    }
+                }
+            }
+        }
+
+        stage('Switch Traffic') {
+            steps {
+                bat "docker stop blue"
+                echo "✅ Traffic moved to GREEN"
+            }
+        }
+    }
+}
