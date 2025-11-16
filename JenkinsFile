@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Pull Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/yourname/blue-green-repo.git'
+            }
+        }
+
+        stage('Deploy Blue') {
+            steps {
+                sh 'docker stop blue || true'
+                sh 'docker rm blue || true'
+                sh 'docker run -d --name blue -p 8081:3000 yourdockerhubusername/node-blue:v1'
+            }
+        }
+
+        stage('Deploy Green') {
+            steps {
+                sh 'docker stop green || true'
+                sh 'docker rm green || true'
+                sh 'docker run -d --name green -p 8082:3000 yourdockerhubusername/node-green:v2'
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                script {
+                    def green_status = sh(script: "curl -s http://localhost:8082", returnStdout: true)
+                    if (!green_status.contains('Green')) {
+                        error("Green deployment failed")
+                    }
+                }
+            }
+        }
+
+        stage('Switch Traffic') {
+            steps {
+                sh 'docker stop blue'
+                echo "Traffic moved to GREEN deployment"
+            }
+        }
+    }
+}
