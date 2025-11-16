@@ -10,21 +10,17 @@ pipeline {
 
         stage('Deploy Blue') {
             steps {
-                bat """
-                docker stop blue || echo Blue not running
-                docker rm blue || echo Blue not found
-                docker run -d --name blue -p 8081:3000 ranjana4047/node-blue:v1
-                """
+                bat 'docker stop blue || echo Blue not running'
+                bat 'docker rm blue || echo Blue not found'
+                bat 'docker run -d --name blue -p 8081:3000 ranjana4047/node-blue:v1'
             }
         }
 
         stage('Deploy Green') {
             steps {
-                bat """
-                docker stop green || echo Green not running
-                docker rm green || echo Green not found
-                docker run -d --name green -p 8082:3000 ranjana4047/node-green:v2
-                """
+                bat 'docker stop green || echo Green not running'
+                bat 'docker rm green || echo Green not found'
+                bat 'docker run -d --name green -p 8082:3000 ranjana4047/node-green:v2'
             }
         }
 
