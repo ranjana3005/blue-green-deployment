@@ -11,21 +11,17 @@ pipeline {
 
         stage('Deploy Blue') {
             steps {
-                bat '''
-                docker stop blue 2>NUL || echo Blue not running
-                docker rm blue 2>NUL || echo Blue not found
-                docker run -d --name blue -p 8081:3000 ranjana4047/node-blue:v1
-                '''
+                bat 'docker stop blue || exit 0'
+                bat 'docker rm blue || exit 0'
+                bat 'docker run -d --name blue -p 8081:3000 ranjana4047/blue-green-app:v1'
             }
         }
 
         stage('Deploy Green') {
             steps {
-                bat '''
-                docker stop green 2>NUL || echo Green not running
-                docker rm green 2>NUL || echo Green not found
-                docker run -d --name green -p 8082:3000 ranjana4047/node-green:v2
-                '''
+                bat 'docker stop green || exit 0'
+                bat 'docker rm green || exit 0'
+                bat 'docker run -d --name green -p 8082:3000 ranjana4047/blue-green-app:v2'
             }
         }
 
@@ -39,8 +35,6 @@ pipeline {
 
                     if (!green_status.contains('Green')) {
                         error("❌ Green deployment failed")
-                    } else {
-                        echo "✅ Green deployment is healthy"
                     }
                 }
             }
@@ -48,8 +42,8 @@ pipeline {
 
         stage('Switch Traffic') {
             steps {
-                bat 'docker stop blue'
-                echo '✅ Traffic switched to GREEN deployment (Blue stopped)'
+                bat 'docker stop blue || exit 0'
+                echo '✅ Traffic switched to GREEN deployment'
             }
         }
     }
