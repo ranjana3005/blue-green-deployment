@@ -13,7 +13,7 @@ pipeline {
                 bat """
                 docker stop blue
                 docker rm blue
-                docker run -d --name blue -p 8081:3000 yourdockerhubusername/node-blue:v1
+                docker run -d --name blue -p 8081:3000 ranjana4047/node-blue:v1
                 """
             }
         }
@@ -23,7 +23,7 @@ pipeline {
                 bat """
                 docker stop green
                 docker rm green
-                docker run -d --name green -p 8082:3000 yourdockerhubusername/node-green:v2
+                docker run -d --name green -p 8082:3000 ranjana4047/node-green:v2
                 """
             }
         }
@@ -51,4 +51,5 @@ pipeline {
         }
     }
 }
+
 
