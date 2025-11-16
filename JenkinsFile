@@ -11,8 +11,8 @@ pipeline {
         stage('Deploy Blue') {
             steps {
                 bat """
-                docker stop blue
-                docker rm blue
+                docker stop blue || echo Blue not running
+                docker rm blue || echo Blue not found
                 docker run -d --name blue -p 8081:3000 ranjana4047/node-blue:v1
                 """
             }
@@ -21,8 +21,8 @@ pipeline {
         stage('Deploy Green') {
             steps {
                 bat """
-                docker stop green
-                docker rm green
+                docker stop green || echo Green not running
+                docker rm green || echo Green not found
                 docker run -d --name green -p 8082:3000 ranjana4047/node-green:v2
                 """
             }
@@ -32,7 +32,7 @@ pipeline {
             steps {
                 script {
                     def green_status = bat(
-                        script: 'curl -s http://localhost:8082',
+                        script: 'powershell -Command "(Invoke-WebRequest http://localhost:8082).Content"',
                         returnStdout: true
                     ).trim()
 
@@ -51,5 +51,3 @@ pipeline {
         }
     }
 }
-
-
