@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Pull Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/ranjana3005/blue-green-deployment.git'
+            }
+        }
+
+        stage('Deploy Blue') {
+            steps {
+                bat 'docker stop blue   2>NUL || echo Blue not running'
+                bat 'docker rm blue     2>NUL || echo Blue not found'
+                bat 'docker run -d --name blue -p 8081:4000 ranjana4047/blue-green-app:v1'
+            }
+        }
+
+        stage('Deploy Green') {
+            steps {
+                bat 'docker stop green   2>NUL || echo Green not running'
+                bat 'docker rm green     2>NUL || echo Green not found'
+                bat 'docker run -d --name green -p 8082:4000 ranjana4047/blue-green-app:v2'
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                script {
+
+                    def response = bat(
+                        script: 'curl.exe -s -o nul -w "%{http_code}" http://host.docker.internal:8082',
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Health Check Status Code = ${response}"
+
+                    if (response != "200") {
+                        error("❌ Green app is NOT returning 200 OK")
+                    }
+
+                    echo "✅ Health Check Passed"
+                }
+            }
+        }
+
+        stage('Switch Traffic') {
+            steps {
+                bat 'docker stop blue 2>NUL || echo Blue not running'
+                echo '✅ Traffic switched to GREEN deployment'
+            }
+        }
+    }
+}
